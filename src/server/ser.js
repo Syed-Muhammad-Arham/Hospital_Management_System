@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ser.js → TERA PURA BACKEND AB 100% PERFECT + LOGIN READY
 import express from "express";
 import { MongoClient, ObjectId } from "mongodb";
@@ -6,6 +7,12 @@ import dns from "dns";
 
 // Pakistan ISP DNS Fix for MongoDB Atlas
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
+=======
+// server.js → TERA PURA BACKEND AB 100% PERFECT + SAFE
+import express from "express";
+import { MongoClient, ObjectId } from "mongodb";
+import cors from "cors";
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 
 const app = express();
 app.use(cors());
@@ -31,6 +38,7 @@ async function connectDB() {
     medicine = db.collection("medicine");
     equipment = db.collection("equipment");
 
+<<<<<<< HEAD
     // Agar database me koi admin nahi hai toh default Super Admin bana dega
     const adminCount = await admins.countDocuments();
     if (adminCount === 0) {
@@ -45,6 +53,8 @@ async function connectDB() {
       );
     }
 
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
     console.log("MongoDB Connected Successfully");
   } catch (err) {
     console.error("MongoDB Connection Failed:", err);
@@ -54,6 +64,7 @@ async function connectDB() {
 
 connectDB();
 
+<<<<<<< HEAD
 // ================= LOGIN ROUTE (DATABASE CHECK) =================
 app.post("/login", async (req, res) => {
   try {
@@ -109,6 +120,12 @@ app.post("/add_admin", async (req, res) => {
       role: req.body.role || "Admin",
     });
     res.status(200).json({ message: "Admin added successfully" });
+=======
+app.post("/add_admin", async (req, res) => {
+  try {
+    await admins.insertOne(req.body);
+    res.json({ message: "Admin added successfully" });
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   } catch (err) {
     res.status(500).json({ message: "Error adding admin" });
   }
@@ -119,7 +136,10 @@ app.get("/admins", async (req, res) => {
   res.json({ admins: data });
 });
 
+<<<<<<< HEAD
 // ================= DOCTORS ROUTES =================
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 app.post("/add_doctor", async (req, res) => {
   try {
     await doctors.insertOne(req.body);
@@ -136,10 +156,16 @@ app.get("/doctors", async (req, res) => {
 
 app.put("/doctor/:id", async (req, res) => {
   try {
+<<<<<<< HEAD
     const { _id, ...updateFields } = req.body;
     const result = await doctors.updateOne(
       { _id: new ObjectId(req.params.id) },
       { $set: updateFields },
+=======
+    const result = await doctors.updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
     );
     res.json({
       message: "Doctor updated",
@@ -161,7 +187,10 @@ app.delete("/doctor/:id", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 // ================= DEPARTMENTS ROUTES =================
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 app.post("/add_department", async (req, res) => {
   try {
     await departments.insertOne(req.body);
@@ -177,10 +206,16 @@ app.get("/departments", async (req, res) => {
 });
 
 app.put("/departments/:id", async (req, res) => {
+<<<<<<< HEAD
   const { _id, ...updateFields } = req.body;
   const result = await departments.updateOne(
     { _id: new ObjectId(req.params.id) },
     { $set: updateFields },
+=======
+  const result = await departments.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   );
   res.json({ modifiedCount: result.modifiedCount });
 });
@@ -192,7 +227,10 @@ app.delete("/departments/:id", async (req, res) => {
   res.json({ deleted: result.deletedCount === 1 });
 });
 
+<<<<<<< HEAD
 // ================= PATIENTS ROUTES =================
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 app.post("/add_patients", async (req, res) => {
   try {
     await patients.insertOne(req.body);
@@ -208,19 +246,31 @@ app.get("/patients", async (req, res) => {
 });
 
 app.put("/patients/:id", async (req, res) => {
+<<<<<<< HEAD
   const { _id, ...updateFields } = req.body;
   const result = await patients.updateOne(
     { _id: new ObjectId(req.params.id) },
     { $set: updateFields },
+=======
+  const result = await patients.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   );
   res.json({ modifiedCount: result.modifiedCount });
 });
 
 app.patch("/patients/:id", async (req, res) => {
+<<<<<<< HEAD
   const { _id, ...updateFields } = req.body;
   const result = await patients.updateOne(
     { _id: new ObjectId(req.params.id) },
     { $set: updateFields },
+=======
+  const result = await patients.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   );
   res.json({ modifiedCount: result.modifiedCount });
 });
@@ -230,7 +280,10 @@ app.delete("/patients/:id", async (req, res) => {
   res.json({ deleted: result.deletedCount === 1 });
 });
 
+<<<<<<< HEAD
 // ================= APPOINTMENTS ROUTES =================
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 app.post("/add_appointment", async (req, res) => {
   try {
     await appointments.insertOne(req.body);
@@ -246,10 +299,16 @@ app.get("/appointments", async (req, res) => {
 });
 
 app.put("/appointments/:id", async (req, res) => {
+<<<<<<< HEAD
   const { _id, ...updateFields } = req.body;
   const result = await appointments.updateOne(
     { _id: new ObjectId(req.params.id) },
     { $set: updateFields },
+=======
+  const result = await appointments.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   );
   res.json({ modifiedCount: result.modifiedCount });
 });
@@ -260,8 +319,11 @@ app.delete("/appointments/:id", async (req, res) => {
   });
   res.json({ deleted: result.deletedCount === 1 });
 });
+<<<<<<< HEAD
 
 // ================= MEDICINE ROUTES =================
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 app.post("/add_medicine", async (req, res) => {
   try {
     await medicine.insertOne(req.body);
@@ -277,10 +339,16 @@ app.get("/medicine", async (req, res) => {
 });
 
 app.put("/medicine/:id", async (req, res) => {
+<<<<<<< HEAD
   const { _id, ...updateFields } = req.body;
   const result = await medicine.updateOne(
     { _id: new ObjectId(req.params.id) },
     { $set: updateFields },
+=======
+  const result = await medicine.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   );
   res.json({
     message: "Medicine updated",
@@ -293,7 +361,10 @@ app.delete("/medicine/:id", async (req, res) => {
   res.json({ deleted: result.deletedCount === 1 });
 });
 
+<<<<<<< HEAD
 // ================= EQUIPMENT ROUTES =================
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
 app.post("/add_equipment", async (req, res) => {
   try {
     await equipment.insertOne(req.body);
@@ -309,10 +380,16 @@ app.get("/equipment", async (req, res) => {
 });
 
 app.put("/equipment/:id", async (req, res) => {
+<<<<<<< HEAD
   const { _id, ...updateFields } = req.body;
   const result = await equipment.updateOne(
     { _id: new ObjectId(req.params.id) },
     { $set: updateFields },
+=======
+  const result = await equipment.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   );
   res.json({ modifiedCount: result.modifiedCount });
 });

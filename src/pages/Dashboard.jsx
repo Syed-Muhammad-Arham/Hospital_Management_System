@@ -25,10 +25,13 @@ import {
 } from "recharts";
 
 export default function Dashboard() {
+<<<<<<< HEAD
   const loggedInUser = JSON.parse(localStorage.getItem("user")) || {
     name: "Arham Ahmed",
     role: "Super Admin",
   };
+=======
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
   const [stats, setStats] = useState({
     patients: 0,
     doctors: 0,
@@ -142,7 +145,11 @@ export default function Dashboard() {
           Dashboard Overview
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-400 mt-3">
+<<<<<<< HEAD
           Welcome back, {loggedInUser.name} • {loggedInUser.role}
+=======
+          Welcome back, Arham Ahmed • Super Admin
+>>>>>>> 810dcecb017ab3bc6e666a4a1b853662c60cf58b
         </p>
       </motion.div>
 
