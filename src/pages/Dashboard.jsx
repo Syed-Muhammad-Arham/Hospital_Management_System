@@ -1,126 +1,296 @@
 // src/pages/Dashboard.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { motion } from "framer-motion";
 import {
   Users,
-  UserCheck,
+  Stethoscope,
   Building2,
-  Pill,
   Calendar,
+  Pill,
+  HeartPulse,
   Activity,
+  TrendingUp,
+  Clock,
+  UserCheck,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Dashboard() {
   const loggedInUser = JSON.parse(localStorage.getItem("user")) || {
     name: "Arham Ahmed",
-    role: "Administrator",
+    role: "Super Admin",
+  };
+  const [stats, setStats] = useState({
+    patients: 0,
+    doctors: 0,
+    departments: 0,
+    appointments: 0,
+    medicine: 0,
+    equipment: 0,
+  });
+
+  const [recentPatients, setRecentPatients] = useState([]);
+  const [recentAppointments, setRecentAppointments] = useState([]);
+
+  // Weekly Data for Chart
+  const weeklyData = [
+    { day: "Mon", appointments: 45 },
+    { day: "Tue", appointments: 58 },
+    { day: "Wed", appointments: 52 },
+    { day: "Thu", appointments: 71 },
+    { day: "Fri", appointments: 68 },
+    { day: "Sat", appointments: 85 },
+    { day: "Sun", appointments: 60 },
+  ];
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      const responses = await Promise.all([
+        axios.get("http://localhost:8000/patients"),
+        axios.get("http://localhost:8000/doctors"),
+        axios.get("http://localhost:8000/departments"),
+        axios.get("http://localhost:8000/appointments"),
+        axios.get("http://localhost:8000/medicine"),
+        axios.get("http://localhost:8000/equipment"),
+      ]);
+
+      const [p, d, dept, appt, med, eq] = responses;
+
+      setStats({
+        patients: p.data.patients?.length || 0,
+        doctors: d.data.doctors?.length || 0,
+        departments: dept.data.departments?.length || 0,
+        appointments: appt.data.appointments?.length || 0,
+        medicine: med.data.medicine?.length || 0,
+        equipment: eq.data.equipment?.length || 0,
+      });
+
+      setRecentPatients((p.data.patients || []).slice(-5).reverse());
+      setRecentAppointments((appt.data.appointments || []).slice(-5).reverse());
+    } catch (err) {
+      console.error("Dashboard data fetch failed:", err);
+    }
   };
 
-  const stats = [
+  const statCards = [
     {
       title: "Total Patients",
-      count: "1,248",
+      value: stats.patients,
       icon: Users,
-      color: "bg-blue-500",
+      gradient: "from-blue-500 to-cyan-500",
       change: "+12%",
     },
     {
       title: "Active Doctors",
-      count: "48",
-      icon: UserCheck,
-      color: "bg-green-500",
-      change: "+4%",
+      value: stats.doctors,
+      icon: Stethoscope,
+      gradient: "from-purple-500 to-pink-500",
+      change: "+8",
     },
     {
       title: "Departments",
-      count: "10",
+      value: stats.departments,
       icon: Building2,
-      color: "bg-purple-500",
-      change: "0%",
+      gradient: "from-green-500 to-emerald-500",
+      change: "100%",
     },
     {
-      title: "Appointments Today",
-      count: "86",
+      title: "Total Appointments",
+      value: stats.appointments,
       icon: Calendar,
-      color: "bg-orange-500",
-      change: "+18%",
+      gradient: "from-orange-500 to-red-500",
+      change: "+23%",
+    },
+    {
+      title: "Medicine Stock",
+      value: stats.medicine,
+      icon: Pill,
+      gradient: "from-indigo-500 to-blue-600",
+      change: "In Stock",
+    },
+    {
+      title: "Equipment",
+      value: stats.equipment,
+      icon: HeartPulse,
+      gradient: "from-rose-500 to-pink-600",
+      change: "Operational",
     },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Welcome back, {loggedInUser.name}! 👋
-          </h1>
-          <p className="text-blue-100 mt-1">
-            Here is the overview of your hospital management system today.
-          </p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-sm">
-          <span>
-            Role: <strong className="capitalize">{loggedInUser.role}</strong>
-          </span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900/50 p-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-10"
+      >
+        <h1 className="text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Dashboard Overview
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 mt-3">
+          Welcome back, {loggedInUser.name} • {loggedInUser.role}
+        </p>
+      </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((item, index) => {
-          const Icon = item.icon;
-          return (
+      {/* Stats Grid - 3 Cards Per Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 max-w-7xl mx-auto">
+        {statCards.map((card, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="group relative bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-200/60 dark:border-gray-700/60 overflow-hidden"
+          >
             <div
-              key={index}
-              className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between"
-            >
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {item.title}
-                </p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {item.count}
-                </h3>
-                <span className="text-xs text-green-600 dark:text-green-400 font-semibold mt-2 inline-block">
-                  {item.change} from last month
+              className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-10 group-hover:opacity-20 transition-opacity`}
+            />
+            <div className="p-8 relative z-10">
+              <div className="flex items-center justify-between mb-6">
+                <div
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} p-0.5`}
+                >
+                  <div className="w-full h-full rounded-2xl bg-white/10 dark:bg-black/20 backdrop-blur flex items-center justify-center">
+                    <card.icon className="w-9 h-9 text-white" />
+                  </div>
+                </div>
+                <span className="text-sm font-bold text-green-500 flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  {card.change}
                 </span>
               </div>
-              <div
-                className={`p-4 rounded-xl text-white ${item.color} shadow-md`}
-              >
-                <Icon className="w-6 h-6" />
-              </div>
+              <h3 className="text-4xl font-black text-gray-900 dark:text-white">
+                {card.value}
+              </h3>
+              <p className="text-lg font-medium text-gray-600 dark:text-gray-400 mt-2">
+                {card.title}
+              </p>
             </div>
-          );
-        })}
+          </motion.div>
+        ))}
       </div>
 
-      {/* Quick Overview Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            Hospital Performance Overview
-          </h3>
-          <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl text-gray-400">
-            Analytics & Reports Active
+      {/* Chart + Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        {/* Weekly Appointments Chart */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700/60"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <Activity className="w-8 h-8 text-purple-500" />
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Weekly Appointments Trend
+            </h3>
           </div>
-        </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={weeklyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="day" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(31, 41, 55, 0.8)",
+                  border: "none",
+                  borderRadius: "12px",
+                  color: "white",
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="appointments"
+                stroke="#8b5cf6"
+                strokeWidth={4}
+                dot={{ fill: "#8b5cf6", r: 6 }}
+                activeDot={{ r: 8 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </motion.div>
 
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            Quick Actions
-          </h3>
-          <div className="space-y-3">
-            <button className="w-full text-left px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition">
-              + Register New Patient
-            </button>
-            <button className="w-full text-left px-4 py-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium hover:bg-purple-100 dark:hover:bg-purple-900/40 transition">
-              + Schedule Appointment
-            </button>
-            <button className="w-full text-left px-4 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 font-medium hover:bg-green-100 dark:hover:bg-green-900/40 transition">
-              + Add Doctor Record
-            </button>
-          </div>
+        {/* Recent Activity */}
+        <div className="space-y-8">
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700/60"
+          >
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+              <UserCheck className="w-7 h-7 text-blue-500" />
+              Recent Patients
+            </h3>
+            {recentPatients.length > 0 ? (
+              recentPatients.map((p) => (
+                <div
+                  key={p._id}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/50 mb-3"
+                >
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    {p.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {p.name}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {p.age} yrs • {p.gender}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">No patients yet</p>
+            )}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-xl p-8 border border-gray-200/60 dark:border-gray-700/60"
+          >
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+              <Clock className="w-7 h-7 text-green-500" />
+              Today's Appointments
+            </h3>
+            {recentAppointments.length > 0 ? (
+              recentAppointments.map((a) => (
+                <div
+                  key={a._id}
+                  className="flex justify-between items-center p-4 rounded-2xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 mb-3"
+                >
+                  <div>
+                    <p className="font-semibold">Dr. {a.doctor_id}</p>
+                    <p className="text-sm text-gray-600">
+                      Patient: {a.patient_id}
+                    </p>
+                  </div>
+                  <span className="text-sm font-medium px-3 py-1 bg-green-100 text-green-700 rounded-full">
+                    {a.time || "Scheduled"}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">
+                No appointments today
+              </p>
+            )}
+          </motion.div>
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ function App() {
     localStorage.getItem("isAuthenticated") === "true",
   );
 
+  // Login ya Logout hone par state update karne ke liye
   useEffect(() => {
     const checkAuth = () => {
       setIsAuth(localStorage.getItem("isAuthenticated") === "true");
@@ -28,10 +29,12 @@ function App() {
   return (
     <BrowserRouter>
       {!isAuth ? (
+        /* AGAR LOGIN NAHI HAI TOH SIRF LOGIN PAGE DIKhao (NO SIDEBAR) */
         <Routes>
           <Route path="*" element={<Login setIsAuth={setIsAuth} />} />
         </Routes>
       ) : (
+        /* AGAR LOGIN HAI TOH SIDEBAR + DASHBOARD DIKHAO */
         <div className="flex h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800">
           <Sidebar setIsAuth={setIsAuth} />
 

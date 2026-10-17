@@ -1,113 +1,191 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, Mail, ArrowRight, ShieldAlert } from "lucide-react";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { Lock, Mail, LogIn, Hospital, User, UserPlus } from "lucide-react";
 
 export default function Login({ setIsAuth }) {
+  const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("Super Admin");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
-    setTimeout(() => {
-      if (email.trim() && password.trim()) {
-        const userData = {
-          name: email.split("@")[0] || "Admin User",
-          email: email,
-          role: "Administrator",
-        };
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("user", JSON.stringify(userData));
-        setIsAuth(true);
-        navigate("/dashboard");
+    try {
+      if (isRegister) {
+        // Naya Admin Database me add karega
+        const res = await axios.post("http://localhost:8000/add_admin", {
+          name: name.trim(),
+          email: email.trim(),
+          password: password.trim(),
+          role,
+        });
+        if (res.status === 200) {
+          setSuccess("Admin Account Created in Database! Ab Login karein.");
+          setIsRegister(false);
+          setPassword("");
+        }
       } else {
-        setError("Please enter valid email and password.");
-        setLoading(false);
+        // Database se Login Check karega
+        const res = await axios.post("http://localhost:8000/login", {
+          email: email.trim(),
+          password: password.trim(),
+        });
+
+        if (res.status === 200 && res.data.user) {
+          localStorage.setItem("isAuthenticated", "true");
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          if (setIsAuth) setIsAuth(true);
+          navigate("/dashboard");
+        }
       }
-    }, 600);
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Invalid Email or Password! (Ya check karein ke ser.js chal raha hai)",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-slate-900 to-indigo-950 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-gray-800">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white shadow-lg shadow-blue-500/30 mb-4">
-            <Lock className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Welcome Back
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Hospital Management System Portal
-          </p>
-        </div>
+    <div className="min-h-screen w-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
+      </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-sm flex items-center gap-3">
-            <ShieldAlert className="w-5 h-5 flex-shrink-0" />
-            <span>{error}</span>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 w-full max-w-md"
+      >
+        <div className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 p-10">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
+              <Hospital className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-black text-white mb-1">
+              City Care Hospital
+            </h1>
+            <p className="text-lg text-white/80 font-medium">
+              {isRegister ? "Register New Admin" : "Admin Portal"}
+            </p>
           </div>
-        )}
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-              Email Address
-            </label>
+          {error && (
+            <div className="mb-5 p-3 bg-red-500/40 border border-red-300 rounded-2xl text-white text-center text-sm font-semibold">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-5 p-3 bg-emerald-500/40 border border-emerald-300 rounded-2xl text-white text-center text-sm font-semibold">
+              {success}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {isRegister && (
+              <>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
+                  <input
+                    type="text"
+                    placeholder="Full Name (e.g. Arham Ahmed)"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full pl-12 pr-4 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none"
+                  />
+                </div>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-2xl text-white focus:outline-none [&>option]:text-gray-900"
+                >
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Receptionist">Receptionist</option>
+                </select>
+              </>
+            )}
+
             <div className="relative">
-              <Mail className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
               <input
                 type="email"
-                required
+                placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@medicare.com"
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                required
+                className="w-full pl-12 pr-4 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-              Password
-            </label>
             <div className="relative">
-              <Lock className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
               <input
                 type="password"
-                required
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                required
+                className="w-full pl-12 pr-4 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none"
               />
             </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-lg rounded-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer"
+            >
+              {isRegister ? (
+                <UserPlus className="w-6 h-6" />
+              ) : (
+                <LogIn className="w-6 h-6" />
+              )}
+              {loading
+                ? "Checking Database..."
+                : isRegister
+                  ? "Create Admin Account"
+                  : "Login to Dashboard"}
+            </motion.button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setError("");
+                setSuccess("");
+              }}
+              className="text-white/90 hover:text-white underline text-sm font-medium bg-transparent border-none cursor-pointer"
+            >
+              {isRegister
+                ? "Already have an account? Login here"
+                : "New Admin? Create an account in Database"}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-          >
-            <span>{loading ? "Authenticating..." : "Sign In"}</span>
-            {!loading && <ArrowRight className="w-5 h-5" />}
-          </button>
-        </form>
-
-        {/* Footer info */}
-        <div className="mt-8 text-center text-xs text-gray-400 dark:text-gray-500">
-          Secure HMS Dashboard v1.0 • University Project
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
